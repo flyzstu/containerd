@@ -80,7 +80,7 @@ var pushCommand = &cli.Command{
 	}),
 	Action: func(cliContext *cli.Context) error {
 		var (
-			ref   = cliContext.Args().First()
+			ref   = commands.ImageNameWithDefaultRegistry(cliContext, cliContext.Args().First())
 			local = cliContext.Args().Get(1)
 			debug = cliContext.Bool("debug")
 			desc  ocispec.Descriptor

@@ -155,7 +155,7 @@ var Command = &cli.Command{
 			}
 		} else {
 			id = cliContext.Args().Get(1)
-			ref = cliContext.Args().First()
+			ref = commands.ImageNameWithDefaultRegistry(cliContext, cliContext.Args().First())
 
 			if ref == "" {
 				return errors.New("image ref must be provided")

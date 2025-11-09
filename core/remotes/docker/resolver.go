@@ -131,10 +131,28 @@ type ResolverOptions struct {
 
 // DefaultHost is the default host function.
 func DefaultHost(ns string) (string, error) {
+	// Use the centralized function to get default registry
+	defaultRegistry := GetDefaultRegistry()
+	
+	if ns == defaultRegistry {
+		// If the namespace matches the default registry, return it directly
+		// This handles both custom and default registries
+		return ns, nil
+	}
+	
 	if ns == "docker.io" {
 		return "registry-1.docker.io", nil
 	}
 	return ns, nil
+}
+
+// GetDefaultRegistry returns the default registry to use for image resolution
+func GetDefaultRegistry() string {
+	// Check if there's a custom default registry set via environment variable
+	if customRegistry := os.Getenv("CONTAINERD_DEFAULT_IMAGE_REGISTRY"); customRegistry != "" {
+		return customRegistry
+	}
+	return "docker.io"
 }
 
 type dockerResolver struct {

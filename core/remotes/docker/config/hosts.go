@@ -98,9 +98,14 @@ func ConfigureHosts(ctx context.Context, options HostOptions) docker.RegistryHos
 			hosts = make([]hostConfig, 1)
 		}
 		if len(hosts) > 0 && hosts[len(hosts)-1].host == "" {
+			customRegistry := docker.GetDefaultRegistry()
 			if host == "docker.io" {
 				hosts[len(hosts)-1].scheme = "https"
 				hosts[len(hosts)-1].host = "registry-1.docker.io"
+			} else if customRegistry != "docker.io" && host == customRegistry {
+				// Handle custom registries from environment variable
+				hosts[len(hosts)-1].scheme = "https"
+				hosts[len(hosts)-1].host = customRegistry
 			} else if docker.IsLocalhost(host) {
 				hosts[len(hosts)-1].host = host
 				if options.DefaultScheme == "" {

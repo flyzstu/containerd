@@ -53,6 +53,10 @@ var (
 
 	// RegistryFlags are cli flags specifying registry options
 	RegistryFlags = []cli.Flag{
+		&cli.StringFlag{
+			Name:  "image-registry",
+			Usage: "Default image registry to use when pulling images (overrides docker.io)",
+		},
 		&cli.BoolFlag{
 			Name:    "skip-verify",
 			Aliases: []string{"k"},
@@ -239,6 +243,41 @@ func ObjectWithLabelArgs(cliContext *cli.Context) (string, map[string]string) {
 	)
 
 	return first, LabelArgs(labelStrings)
+}
+
+// GetDefaultImageRegistry returns the default image registry from CLI context
+func GetDefaultImageRegistry(cliContext *cli.Context) string {
+	if registry := cliContext.String("image-registry"); registry != "" {
+		return registry
+	}
+	// Return the default Docker Hub registry
+	return "docker.io"
+}
+
+// ImageNameWithDefaultRegistry returns the image name with the default registry
+// if the image doesn't already have a registry specified
+func ImageNameWithDefaultRegistry(cliContext *cli.Context, imageName string) string {
+	// If the image already contains a registry, return as-is
+	if strings.Contains(imageName, "://") || strings.Contains(imageName, "/") && 
+	   !strings.HasPrefix(imageName, "localhost:") {
+		// Check if it looks like a bare image name (e.g., "ubuntu" -> "ubuntu:latest")
+		parts := strings.Split(imageName, "/")
+		if len(parts) == 1 && !strings.Contains(parts[0], ":") {
+			// This is a bare image name, add default registry
+			defaultRegistry := GetDefaultImageRegistry(cliContext)
+			if defaultRegistry == "docker.io" {
+				return "docker.io/library/" + imageName
+			}
+			return defaultRegistry + "/" + imageName
+		}
+		return imageName
+	}
+	// If no registry specified, add default registry
+	defaultRegistry := GetDefaultImageRegistry(cliContext)
+	if defaultRegistry == "docker.io" {
+		return "docker.io/library/" + imageName
+	}
+	return defaultRegistry + "/" + imageName
 }
 
 // LabelArgs returns a map of label key,value pairs

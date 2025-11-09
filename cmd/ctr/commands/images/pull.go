@@ -92,7 +92,7 @@ command. As part of this process, we do the following:
 	),
 	Action: func(cliContext *cli.Context) error {
 		var (
-			ref = cliContext.Args().First()
+			ref = commands.ImageNameWithDefaultRegistry(cliContext, cliContext.Args().First())
 		)
 		if ref == "" {
 			return errors.New("please provide an image reference to pull")
